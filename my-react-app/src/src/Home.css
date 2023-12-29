@@ -1,0 +1,41 @@
+/* App.css */
+#layout {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-direction: column; /* 세로 방향으로 정렬되도록 수정 */
+  font-style: Pretendard;
+}
+
+.table {
+  width: 100%;
+  max-width: 1200px; /* 최대 너비 1200px */
+  margin-top: 20px; /* 여백을 주기 위해 추가 */
+}
+
+.table-header {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: left;
+  margin-bottom: 20px;
+  padding-top: 50px;
+  border-top: 1px solid #DFE5EB;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+th {
+  background-color: #F5F8FA;
+}
+.select-container{
+  position: relative;
+  height: 50px;
+}
