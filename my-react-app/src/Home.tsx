@@ -1,103 +1,123 @@
 // src/Home.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './Home.css';
+import blackArrowIcon from './image/black-arrow.png'
+import blueArrowIcon from './image/blue-arrow.png'
 
 // component
-import Modal from './Modal';
+import Modal from './modal/FilterModal';
+import FilterModal from './modal/SortModal';
+import { getGitHubIssues } from './api';
 
 const Home: React.FC = () => {
-  
-  const tableData = [
-    { id: 1, column1: 'Data 1', column2: 'Data 2', column3: 'Data 3', column4: 'Data 4', column5: 'Data 5', column6: 'Data 6' },
-    { id: 2, column1: 'Data 7', column2: 'Data 8', column3: 'Data 9', column4: 'Data 10', column5: 'Data 11', column6: 'Data 12' },
-    { id: 3, column1: 'Data 7', column2: 'Data 8', column3: 'Data 9', column4: 'Data 10', column5: 'Data 11', column6: 'Data 12' },
-    { id: 4, column1: 'Data 7', column2: 'Data 8', column3: 'Data 9', column4: 'Data 10', column5: 'Data 11', column6: 'Data 12' },
-    { id: 5, column1: 'Data 7', column2: 'Data 8', column3: 'Data 9', column4: 'Data 10', column5: 'Data 11', column6: 'Data 12' },
-    { id: 6, column1: 'Data 7', column2: 'Data 8', column3: 'Data 9', column4: 'Data 10', column5: 'Data 11', column6: 'Data 12' },
-    { id: 7, column1: 'Data 7', column2: 'Data 8', column3: 'Data 9', column4: 'Data 10', column5: 'Data 11', column6: 'Data 12' },
-    { id: 8, column1: 'Data 7', column2: 'Data 8', column3: 'Data 9', column4: 'Data 10', column5: 'Data 11', column6: 'Data 12' },
-    { id: 9, column1: 'Data 7', column2: 'Data 8', column3: 'Data 9', column4: 'Data 10', column5: 'Data 11', column6: 'Data 12' },
-    { id: 10, column1: 'Data 7', column2: 'Data 8', column3: 'Data 9', column4: 'Data 10', column5: 'Data 11', column6: 'Data 12' },
-    // Add more rows as needed
-  ];
+  const [tableData, setTableData] = useState<any[]>([]); ;
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [issueStatus, setIssueStatus] = useState('open');
+  const [sortStatus, setSortStatus] = useState('created');
+  const [isBlueIcon, setIsBlueIcon] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
+  const openFilterModal =() =>{
+    setFilterModalOpen(true)
+  }
   const openModal = () => {
     setIsModalOpen(true);
   };
+  const closeFilterModal = (id: any) =>{
+    console.log(id,'id');
+    
+    setSortStatus(id)
+    setFilterModalOpen(false)
+  }
+  const closeModal = (id: any) => {
+    if (id !== '이슈 상태') {
+      setIssueStatus(id);
+      setIsBlueIcon(true)
+    } else {
+      setIsBlueIcon(false)
+    }
 
-  const closeModal = () => {
     setIsModalOpen(false);
   };
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const tableData = await getGitHubIssues(issueStatus, sortStatus);
+        setTableData(tableData);
+      } catch (error) {
+        // 에러 처리
+        console.error('Error in fetchData:', error);
+      }
+    }
+
+    fetchData();
+  }, [issueStatus, sortStatus]);
+    // 현재 페이지에 해당하는 데이터를 슬라이싱
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = tableData.slice(indexOfFirstItem, indexOfLastItem);
   
+    // 페이지 변경 이벤트 핸들러
+    const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+    
   return (
     <div id='layout'>
       <div className='table'>
         <div className='table-header'>
-          <h2>이슈정리</h2>
+          <h3>이슈정리</h3>
           <div className='select-container'>
-          <select
-            onClick={openModal}
-            style={{
-              width: '102px',
-              height: '40px',
-              padding: '8px 8px 8px 14px',
-              borderRadius: '32px',
-              border: '1px solid #ddd',
-              gap: '4px',
-              position: 'absolute'
-            }}
-          >
-            <option value='closed'>전체</option>
-            <option value='open'>Open</option>
-            <option value='closed'>Closed</option>
-          </select>
-          <Modal isOpen={isModalOpen} onClose={closeModal} />
-          <select
-            style={{
-              width: '78px',
-              height: '24px',
-              top: '8px',
-              right: '0px',
-              border: 'none',
-              position: 'absolute'
-            }}
-          >
-            <option value='option1'>작성일 순</option>
-            <option value='option2'>수정일 순</option>
-            <option value='option2'>코멘트 순</option>
-            {/* 추가적인 옵션들을 필요에 따라 추가하세요 */}
-          </select>
+            <button
+              id='issueStatusButton'
+              className={`border-btn ${issueStatus !== '이슈 상태' ? 'blue' : ''}`}
+              onClick={openModal}
+            >{issueStatus}
+              <img className='arrow' src={isBlueIcon ? blueArrowIcon : blackArrowIcon} alt="Arrow Icon" />
+            </button>
+
+            <Modal isOpen={isModalOpen} onClose={closeModal} />
+            <FilterModal isOpen={filterModalOpen} onClose={closeFilterModal} />
+            <button
+              className='date-btn'
+              onClick={openFilterModal}
+            >작성일 순
+              <img className='arrow' src={blackArrowIcon} alt="Icon" />
+            </button>
           </div>
-          
+
         </div>
         <table>
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Column 1</th>
-              <th>Column 2</th>
-              <th>Column 3</th>
-              <th>Column 4</th>
-              <th>Column 5</th>
-              <th>Column 6</th>
+              <th>번호</th>
+              <th>제목</th>
+              <th>작성자</th>
+              <th>작성일</th>
+              <th>수정일</th>
+              <th>코멘트 수</th>
             </tr>
           </thead>
           <tbody>
-            {tableData.map((row) => (
+            {currentItems.map((row: any, index: number) => (
               <tr key={row.id}>
-                <td>{row.id}</td>
-                <td>{row.column1}</td>
-                <td>{row.column2}</td>
-                <td>{row.column3}</td>
-                <td>{row.column4}</td>
-                <td>{row.column5}</td>
-                <td>{row.column6}</td>
+                <td>{index + 1}</td>
+                <td>{row.title}</td>
+                <td>{row.user.login}</td>
+                <td>{row.created_at}</td>
+                <td>{row.updated_at}</td>
+                <td>{row.comments}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      <div className="pagination">
+          {Array.from({ length: Math.ceil(tableData.length / itemsPerPage) }).map((_, index) => (
+            <button key={index + 1} onClick={() => paginate(index + 1)}>{index + 1}</button>
+          ))}
+        </div>
     </div>
   );
 };
